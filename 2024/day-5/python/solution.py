@@ -1,92 +1,21 @@
-# So. This problem's input has two parts.
-# The first part is a set of "page ordering rules" which basically says that if both of these page numbers are present in an "update" one MUST be before the other.
-# The second part is a set of "updates" which we'll actually iterate thru to find if it complies with the aforementioend "page ordering rules"
-# The answer of the puzzle is the sum of the middle page numbers of all complying updates.
+# Ok so after reading up reddit for a bit I decided that I wanted to go for a cleaner approach, so: (my approach was nasty and was overcomplicating the second half, or maybe I couldn't think of a proper way to brute force it)
+from functools import cmp_to_key
 
-import random
+file = open("2024/day-5/python/input.txt", "r").read().split("\n\n")
+rules = set(file[0].split("\n"))
+orders = [line.split(",") for line in file[1].split("\n")]
 
+def comp(x, y):
+    return -1 if f"{x}|{y}" in rules else 0
 
-def firstHalf():
-    total = 0
-    rules = {}
-    file = open("2024/day-5/python/input.txt", "r")
-    readingRules = True
-    for line in file:
-        if (readingRules):
-            tmp = line.split("|")
-            if len(tmp) == 1:
-                readingRules = False
-                print(rules)
-                continue
-            if int(tmp[1]) in rules:
-                rules[int(tmp[1])].append(int(tmp[0]))
-            else:
-                rules[int(tmp[1])] = [int(tmp[0])]
-            continue
-        update = list(map(int, line.split(",")))
-        abides = True
-        
-        print(update)
-        for i in range(len(update)-1):
-            if update[i] not in rules:
-                rules[update[i]] = []
-            if (len([(e) for e in update[i+1:] if (e) in rules[update[i]]]) > 0 ):
-                abides = False
-                break
-        if (abides):
-            total += int(update[len(update) // 2])
-    print(total) #7198 let's gooo
-            
-# ok part two is just evil...
-# i refuse to comply and will just get silly now
-# ok nvm shuffling the list is insane and i thought it wouldn't take that long. wrong.
-# i'll take a break to work on some other stuff and come back to this    
+def sortedPages(orders):
+    return sorted(orders, key = cmp_to_key(comp))
 
-def getMiddleFromForcedAbide(update, rules):
-    abides = False
-    while (not abides):
-        random.shuffle(update)
-        for i in range(len(update)-1):
-            if update[i] not in rules:
-                rules[update[i]] = []
-            if (len([(e) for e in update[i+1:] if (e) in rules[update[i]]]) > 0 ):
-                abides = False
-                break
-    return int(update[len(update) // 2])
-    
-  
-def secondHalf():
-    total = 0
-    rules = {}
-    file = open("2024/day-5/python/input.txt", "r")
-    readingRules = True
-    for line in file:
-        if (readingRules):
-            tmp = line.split("|")
-            if len(tmp) == 1:
-                readingRules = False
-                #print(rules)
-                continue
-            if int(tmp[1]) in rules:
-                rules[int(tmp[1])].append(int(tmp[0]))
-            else:
-                rules[int(tmp[1])] = [int(tmp[0])]
-            continue
-        update = list(map(int, line.split(",")))
-        abides = True
-        
-        #print(update)
-        for i in range(len(update)-1):
-            if update[i] not in rules:
-                rules[update[i]] = []
-            if (len([(e) for e in update[i+1:] if (e) in rules[update[i]]]) > 0 ):
-                abides = False
-                break
-        if (abides):
-            continue    
-        else:
-            total += getMiddleFromForcedAbide(update, rules)
-            print("ding!")
-    print(total)
-    
-secondHalf()
+def middlePage(pages):
+    return int(pages[len(pages) // 2])
+
+print(sum(middlePage(p) for p in orders if sortedPages(p) == p)) #PT 1 - 7198 again, good
+print(sum(middlePage(sortedPages(p)) for p in orders if sortedPages(p) != p)) #PT 2 - 4230 checks out
+
+# I've been liking taking the most braindead approach possible for each puzzle however it seems like it takes the same amount of time if I just think of a better approach
+# I was stuck as to how to tweak my second half for a bit so I think from this point forward I'll go for cleaner solutions.
