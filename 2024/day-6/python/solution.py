@@ -63,3 +63,4 @@ for i in traversed:
 while (len(total) < len(traversed)):
     time.sleep(.5)
 print(sum([total[i] for i in total]))
+
